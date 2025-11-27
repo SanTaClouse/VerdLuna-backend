@@ -5,11 +5,11 @@ dotenvConfig({ path: '.env.development' });
 
 const config = {
   type: 'postgres',
-  database: process.env.DB_NAME,
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
+  database: process.env.DATABASE_NAME,
+  host: process.env.DATABASE_HOST,
+  port: process.env.DATABASE_PORT,
+  username: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
   dropSchema: true,
   logging: true,
   synchronize: true,

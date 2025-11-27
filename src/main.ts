@@ -8,7 +8,7 @@ async function bootstrap() {
 
   // CORS - Permitir frontend
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -64,9 +64,9 @@ async function bootstrap() {
 
   console.log('');
   console.log('🚀 ===================================');
-  console.log(`✅ Servidor corriendo en: http://localhost:${port}/api`);
+  console.log(`✅ Servidor corriendo en: http://localhost:${port}`);
   console.log(`📚 Documentación Swagger: http://localhost:${port}/api/docs`);
-  console.log(`🗄️  Base de datos: ${process.env.DB_NAME}`);
+  console.log(`🗄️  Base de datos: ${process.env.DATABASE_NAME}`);
   console.log('🚀 ===================================');
   console.log('');
 }
