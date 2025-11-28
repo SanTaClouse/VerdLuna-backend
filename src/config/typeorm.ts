@@ -9,7 +9,7 @@ const config = {
   host: process.env.DATABASE_HOST,
   port: process.env.DATABASE_PORT,
   username: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
+  password: process.env.DATABASE_PASS,
   dropSchema: true,
   logging: true,
   synchronize: true,
