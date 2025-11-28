@@ -19,11 +19,11 @@ import { UsersModule } from './modules/users/users.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get('DB_USER'),
-        password: configService.get('DB_PASS'),
-        database: configService.get('DB_NAME'),
+        host: configService.get('DATABASE_HOST'),
+        port: configService.get<number>('DATABASE_PORT'),
+        username: configService.get('DATABASE_USER'),
+        password: configService.get('DATABASE_PASS'),
+        database: configService.get('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: configService.get('NODE_ENV') === 'development', // Solo en desarrollo
         logging: configService.get('NODE_ENV') === 'development',
@@ -38,4 +38,4 @@ import { UsersModule } from './modules/users/users.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
