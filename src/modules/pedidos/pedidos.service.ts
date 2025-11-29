@@ -75,6 +75,21 @@ export class PedidosService {
     return pedido;
   }
 
+  async marcarComoPago(id: string): Promise<Pedido> {
+    const pedido = await this.findOne(id);
+
+    // Marcar como pago completo
+    pedido.precioAbonado = pedido.precio;
+    // El estado se actualiza automáticamente por el hook @BeforeUpdate
+
+    const pedidoActualizado = await this.pedidoRepository.save(pedido);
+
+    // Actualizar estadísticas del cliente
+    await this.clienteService.actualizarEstadisticas(pedido.clienteId);
+
+    return pedidoActualizado;
+  }
+
   async updateEstado(id: string, updateEstadoDto: UpdateEstadoPedidoDto): Promise<Pedido> {
     const pedido = await this.findOne(id);
 

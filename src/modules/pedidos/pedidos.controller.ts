@@ -52,6 +52,16 @@ export class PedidosController {
     return { success: true, data: pedido };
   }
 
+  @Patch(':id/marcar-pago')
+  @ApiOperation({ summary: 'Marcar pedido como pago completo' })
+  @ApiResponse({ status: 200, description: 'Pedido marcado como pago' })
+  @ApiResponse({ status: 404, description: 'Pedido no encontrado' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async marcarComoPago(@Param('id') id: string) {
+    const pedido = await this.pedidosService.marcarComoPago(id);
+    return { success: true, data: pedido };
+  }
+
   @Patch(':id/estado')
   @ApiOperation({ summary: 'Actualizar monto abonado y estado de pago' })
   @ApiResponse({ status: 200, description: 'Estado actualizado' })
