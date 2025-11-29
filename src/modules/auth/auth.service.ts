@@ -9,7 +9,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async login(loginDto: LoginDto) {
     const { usuario, password } = loginDto;
@@ -39,6 +39,7 @@ export class AuthService {
 
     // Eliminar password de la respuesta
     const { password: _, ...userWithoutPassword } = user;
+    console.log(" 🟢Login exitoso desde el backend ! ");
 
     return {
       success: true,

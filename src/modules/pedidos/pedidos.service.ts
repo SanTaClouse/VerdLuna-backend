@@ -33,7 +33,9 @@ export class PedidosService {
   }
 
   async findAll(filtros: FiltrosPedidosDto = {}): Promise<Pedido[]> {
-    const query = this.pedidoRepository.createQueryBuilder('pedido');
+    const query = this.pedidoRepository.createQueryBuilder('pedido')
+      .leftJoinAndSelect('pedido.cliente', 'cliente')
+      .leftJoinAndSelect('pedido.creadoPor', 'creadoPor');
 
     // Filtro por cliente
     if (filtros.clienteId) {
@@ -63,6 +65,7 @@ export class PedidosService {
   async findOne(id: string): Promise<Pedido> {
     const pedido = await this.pedidoRepository.findOne({
       where: { id },
+      relations: ['cliente', 'creadoPor'],
     });
 
     if (!pedido) {
