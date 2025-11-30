@@ -17,15 +17,22 @@ export class AuthService {
     // Buscar usuario
     const user = await this.usersService.findByUsuario(usuario);
 
-    if (!user || !user.activo) {
-      throw new UnauthorizedException('Credenciales inválidas');
+    if (!user) {
+      console.log(' 🔴 Login fallido: usuario no encontrado -', usuario);
+      throw new UnauthorizedException('Usuario o contraseña incorrectos');
+    }
+
+    if (!user.activo) {
+      console.log(' 🔴 Login fallido: usuario inactivo -', usuario);
+      throw new UnauthorizedException('Usuario inactivo. Contacta al administrador.');
     }
 
     // Verificar password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      console.log(' 🔴 Login fallido: contraseña incorrecta -', usuario);
+      throw new UnauthorizedException('Usuario o contraseña incorrectos');
     }
 
     // Generar JWT
@@ -39,7 +46,7 @@ export class AuthService {
 
     // Eliminar password de la respuesta
     const { password: _, ...userWithoutPassword } = user;
-    console.log(" 🟢Login exitoso desde el backend ! ");
+    console.log(' 🟢 Login exitoso -', usuario);
 
     return {
       success: true,
