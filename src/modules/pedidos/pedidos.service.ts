@@ -29,7 +29,8 @@ export class PedidosService {
     // Actualizar estadísticas del cliente
     await this.clienteService.actualizarEstadisticas(createPedidoDto.clienteId);
 
-    return pedidoGuardado;
+    // Retornar el pedido con las relaciones cargadas
+    return this.findOne(pedidoGuardado.id);
   }
 
   async findAll(filtros: FiltrosPedidosDto = {}): Promise<Pedido[]> {

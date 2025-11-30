@@ -14,9 +14,9 @@ const config = {
   port: process.env.DATABASE_PORT ? parseInt(process.env.DATABASE_PORT) : 5432,
   username: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASS, // Cambiado de DATABASE_PASS a DATABASE_PASSWORD
-  dropSchema: false, // NUNCA dropear en producción
+  dropSchema: true, // NUNCA dropear en producción
   logging: process.env.NODE_ENV !== 'production',
-  synchronize: true, // TODO: Cambiar a false después del primer deploy exitoso
+  synchronize: false, // TODO: Cambiar a false después del primer deploy exitoso
   entities: ['dist/**/*.entity{.js,.ts}'],
   migrations: ['dist/**/*.migrations{.js,.ts}'],
 };

@@ -27,7 +27,7 @@ import { UsersModule } from './modules/users/users.module';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: configService.get('NODE_ENV') === 'development', // Solo en desarrollo
         logging: configService.get('NODE_ENV') === 'development',
-        autoLoadEntities: true,
+        autoLoadEntities: true
       }),
     }),
     AuthModule,
