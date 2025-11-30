@@ -1,27 +1,44 @@
-import { registerAs } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { config as dotenvConfig } from 'dotenv';
 
-// Solo cargar .env.development en desarrollo, en producción usar variables de entorno de Render
+// Cargar variables de entorno para migraciones
 if (process.env.NODE_ENV !== 'production') {
   dotenvConfig({ path: '.env.development' });
 }
 
-const config = {
+// Configuración para la aplicación NestJS
+export const getTypeOrmConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
   type: 'postgres',
-  database: process.env.DATABASE_NAME,
+  host: configService.get('DATABASE_HOST'),
+  port: configService.get<number>('DATABASE_PORT'),
+  username: configService.get('DATABASE_USER'),
+  password: configService.get('DATABASE_PASS'),
+  database: configService.get('DATABASE_NAME'),
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  synchronize: configService.get('NODE_ENV') === 'development', // Solo en desarrollo
+  logging: configService.get('NODE_ENV') === 'development',
+  autoLoadEntities: true,
+  dropSchema: configService.get('NODE_ENV') === 'development' &&
+              configService.get('DROP_SCHEMA') === 'true', // Solo si está explícitamente activado
+  migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
+  migrationsRun: false, // No ejecutar migraciones automáticamente
+});
+
+// Configuración para las migraciones CLI (typeorm-cli)
+export const dataSourceOptions: DataSourceOptions = {
+  type: 'postgres',
   host: process.env.DATABASE_HOST,
-  port: process.env.DATABASE_PORT ? parseInt(process.env.DATABASE_PORT) : 5432,
+  port: parseInt(process.env.DATABASE_PORT || '5432'),
   username: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASS, // Cambiado de DATABASE_PASS a DATABASE_PASSWORD
-  dropSchema: true, // NUNCA dropear en producción
+  password: process.env.DATABASE_PASS,
+  database: process.env.DATABASE_NAME,
+  entities: ['src/**/*.entity{.ts,.js}'],
+  migrations: ['src/database/migrations/*{.ts,.js}'],
+  synchronize: false, // NUNCA usar synchronize con migraciones
   logging: process.env.NODE_ENV !== 'production',
-  synchronize: false, // TODO: Cambiar a false después del primer deploy exitoso
-  entities: ['dist/**/*.entity{.js,.ts}'],
-  migrations: ['dist/**/*.migrations{.js,.ts}'],
 };
-//---
 
-export default registerAs('typeorm', () => config);
-
-export const connectionSource = new DataSource(config as DataSourceOptions); //Solo se ejecuta en las migraciones
+// DataSource para ejecutar migraciones con TypeORM CLI
+export const AppDataSource = new DataSource(dataSourceOptions);

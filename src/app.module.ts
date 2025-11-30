@@ -7,6 +7,7 @@ import { PedidosModule } from './modules/pedidos/pedidos.module';
 import { ClienteModule } from './modules/cliente/cliente.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { getTypeOrmConfig } from './config/typeorm';
 
 @Module({
   imports: [
@@ -17,18 +18,7 @@ import { UsersModule } from './modules/users/users.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DATABASE_HOST'),
-        port: configService.get<number>('DATABASE_PORT'),
-        username: configService.get('DATABASE_USER'),
-        password: configService.get('DATABASE_PASS'),
-        database: configService.get('DATABASE_NAME'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('NODE_ENV') === 'development', // Solo en desarrollo
-        logging: configService.get('NODE_ENV') === 'development',
-        autoLoadEntities: true
-      }),
+      useFactory: (configService: ConfigService) => getTypeOrmConfig(configService),
     }),
     AuthModule,
     UsersModule,
