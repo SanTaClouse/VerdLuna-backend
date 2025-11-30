@@ -61,3 +61,6 @@ Thumbs.db
 # ------------------------
 ormconfig.json
 ormconfig.js
+
+
+*.md
