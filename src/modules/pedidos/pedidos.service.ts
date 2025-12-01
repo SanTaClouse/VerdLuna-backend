@@ -32,14 +32,21 @@ export class PedidosService {
     // Actualizar estadísticas del cliente
     await this.clienteService.actualizarEstadisticas(createPedidoDto.clienteId);
 
-    // Cargar el pedido con relaciones
-    const pedidoConRelaciones = await this.findOne(pedidoGuardado.id);
+    // Cargar el pedido con TODAS las relaciones necesarias
+    const pedidoCompleto = await this.pedidoRepository.findOne({
+      where: { id: pedidoGuardado.id },
+      relations: ['cliente', 'creadoPor'],
+    });
+
+    if (!pedidoCompleto) {
+      throw new NotFoundException('Error al cargar el pedido creado');
+    }
 
     // Generar link de WhatsApp
-    const whatsappLink = this.createWspOrder(pedidoConRelaciones, cliente);
+    const whatsappLink = this.createWspOrder(pedidoCompleto, cliente);
 
     return {
-      pedido: pedidoConRelaciones,
+      pedido: pedidoCompleto,
       whatsappLink,
     };
   }
