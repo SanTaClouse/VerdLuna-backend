@@ -6,6 +6,9 @@ import { UpdateEstadoPedidoDto } from './dto/update-estado-pedido.dto';
 import { FiltrosPedidosDto } from './dto/filtros-pedidos.dto';
 import { Pedido } from './entities/pedido.entity';
 import { ClienteService } from '../cliente/cliente.service';
+import { Cliente } from '../cliente/entities/cliente.entity';
+import querystring from 'querystring';
+
 
 @Injectable()
 export class PedidosService {
@@ -13,11 +16,11 @@ export class PedidosService {
     @InjectRepository(Pedido)
     private pedidoRepository: Repository<Pedido>,
     private clienteService: ClienteService,
-  ) {}
+  ) { }
 
-  async create(createPedidoDto: CreatePedidoDto, userId?: string): Promise<Pedido> {
+  async create(createPedidoDto: CreatePedidoDto, userId?: string): Promise<{ pedido: Pedido; whatsappLink: string }> {
     // Verificar que el cliente existe
-    await this.clienteService.findOne(createPedidoDto.clienteId);
+    const cliente = await this.clienteService.findOne(createPedidoDto.clienteId);
 
     const pedido = this.pedidoRepository.create({
       ...createPedidoDto,
@@ -29,9 +32,35 @@ export class PedidosService {
     // Actualizar estadísticas del cliente
     await this.clienteService.actualizarEstadisticas(createPedidoDto.clienteId);
 
-    // Retornar el pedido con las relaciones cargadas
-    return this.findOne(pedidoGuardado.id);
+    // Cargar el pedido con relaciones
+    const pedidoConRelaciones = await this.findOne(pedidoGuardado.id);
+
+    // Generar link de WhatsApp
+    const whatsappLink = this.createWspOrder(pedidoConRelaciones, cliente);
+
+    return {
+      pedido: pedidoConRelaciones,
+      whatsappLink,
+    };
   }
+
+  createWspOrder(pedido: Pedido, cliente: Cliente): string {
+    const message = `
+Hola ${cliente.nombre}!
+Tu pedido N° ${pedido.id} fue registrado.
+Detalles: ${pedido.descripcion}
+Total: $${pedido.precio}
+
+Verdulería La Luna 🌙
+  `;
+
+    const encoded = querystring.escape(message);
+
+    const link = `https://wa.me/${cliente.telefono}?text=${encoded}`;
+
+    return link;
+  }
+
 
   async findAll(filtros: FiltrosPedidosDto = {}): Promise<Pedido[]> {
     const query = this.pedidoRepository.createQueryBuilder('pedido')
@@ -89,6 +118,19 @@ export class PedidosService {
     await this.clienteService.actualizarEstadisticas(pedido.clienteId);
 
     return pedidoActualizado;
+  }
+
+  async getWhatsappLink(id: string): Promise<string> {
+    const pedido = await this.pedidoRepository.findOne({
+      where: { id },
+      relations: ['cliente'],
+    });
+
+    if (!pedido) {
+      throw new NotFoundException(`Pedido con ID ${id} no encontrado`);
+    }
+
+    return this.createWspOrder(pedido, pedido.cliente);
   }
 
   async updateEstado(id: string, updateEstadoDto: UpdateEstadoPedidoDto): Promise<Pedido> {

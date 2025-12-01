@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, 
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { PedidosService } from './pedidos.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
+import { CreatePedidoResponseDto } from './dto/create-pedido-response.dto';
 import { UpdateEstadoPedidoDto } from './dto/update-estado-pedido.dto';
 import { FiltrosPedidosDto } from './dto/filtros-pedidos.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -11,17 +12,23 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 export class PedidosController {
-  constructor(private readonly pedidosService: PedidosService) {}
+  constructor(private readonly pedidosService: PedidosService) { }
 
   @Post()
   @ApiOperation({ summary: 'Crear nuevo pedido' })
-  @ApiResponse({ status: 201, description: 'Pedido creado exitosamente' })
+  @ApiResponse({ status: 201, description: 'Pedido creado exitosamente con link de WhatsApp', type: CreatePedidoResponseDto })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Cliente no encontrado' })
   async create(@Body() createPedidoDto: CreatePedidoDto, @Request() req) {
-    const pedido = await this.pedidosService.create(createPedidoDto, req.user.id);
-    return { success: true, data: pedido };
+    const result = await this.pedidosService.create(createPedidoDto, req.user.id);
+    return {
+      success: true,
+      data: {
+        pedido: result.pedido,
+        whatsappLink: result.whatsappLink,
+      }
+    };
   }
 
   @Get()
@@ -50,6 +57,16 @@ export class PedidosController {
   async findOne(@Param('id') id: string) {
     const pedido = await this.pedidosService.findOne(id);
     return { success: true, data: pedido };
+  }
+
+  @Get(':id/whatsapp-link')
+  @ApiOperation({ summary: 'Generar link de WhatsApp para un pedido existente' })
+  @ApiResponse({ status: 200, description: 'Link generado exitosamente' })
+  @ApiResponse({ status: 404, description: 'Pedido no encontrado' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async getWhatsappLink(@Param('id') id: string) {
+    const link = await this.pedidosService.getWhatsappLink(id);
+    return { success: true, data: { whatsappLink: link } };
   }
 
   @Patch(':id/marcar-pago')
