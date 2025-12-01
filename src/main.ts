@@ -64,9 +64,7 @@ async function bootstrap() {
 
   console.log('');
   console.log('🚀 ===================================');
-  console.log(`✅ Servidor corriendo en: http://localhost:${port}`);
-  console.log(`📚 Documentación Swagger: http://localhost:${port}/api/docs`);
-  console.log(`🗄️  Base de datos: ${process.env.DATABASE_NAME}`);
+  console.log(`✅ Servidor corriendo `);
   console.log('🚀 ===================================');
   console.log('');
 }
