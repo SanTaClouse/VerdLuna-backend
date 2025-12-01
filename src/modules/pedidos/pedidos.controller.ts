@@ -4,6 +4,7 @@ import { PedidosService } from './pedidos.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { CreatePedidoResponseDto } from './dto/create-pedido-response.dto';
 import { UpdateEstadoPedidoDto } from './dto/update-estado-pedido.dto';
+import { UpdatePrecioAbonadoDto } from './dto/update-precio-abonado.dto';
 import { FiltrosPedidosDto } from './dto/filtros-pedidos.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -86,6 +87,17 @@ export class PedidosController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async marcarComoPago(@Param('id') id: string) {
     const pedido = await this.pedidosService.marcarComoPago(id);
+    return { success: true, data: pedido };
+  }
+
+  @Patch(':id/precio-abonado')
+  @ApiOperation({ summary: 'Actualizar precio abonado (pago parcial)' })
+  @ApiResponse({ status: 200, description: 'Precio abonado actualizado' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  @ApiResponse({ status: 404, description: 'Pedido no encontrado' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async actualizarPrecioAbonado(@Param('id') id: string, @Body() updatePrecioAbonadoDto: UpdatePrecioAbonadoDto) {
+    const pedido = await this.pedidosService.actualizarPrecioAbonado(id, updatePrecioAbonadoDto.monto);
     return { success: true, data: pedido };
   }
 

@@ -151,6 +151,26 @@ export class PedidosService {
     return pedidoActualizado;
   }
 
+  async actualizarPrecioAbonado(id: string, monto: number): Promise<Pedido> {
+    const pedido = await this.findOne(id);
+
+    // Sumar el nuevo monto al precio abonado existente
+    pedido.precioAbonado = Number(pedido.precioAbonado) + Number(monto);
+
+    // Asegurar que no exceda el precio total
+    if (pedido.precioAbonado > pedido.precio) {
+      pedido.precioAbonado = pedido.precio;
+    }
+
+    // El estado se actualiza automáticamente por el hook @BeforeUpdate
+    const pedidoActualizado = await this.pedidoRepository.save(pedido);
+
+    // Actualizar estadísticas del cliente
+    await this.clienteService.actualizarEstadisticas(pedido.clienteId);
+
+    return pedidoActualizado;
+  }
+
   async getWhatsappLink(id: string): Promise<string> {
     const pedido = await this.pedidoRepository.findOne({
       where: { id },
