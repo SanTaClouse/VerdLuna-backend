@@ -69,6 +69,16 @@ export class PedidosController {
     return { success: true, data: { whatsappLink: link } };
   }
 
+  @Patch(':id/whatsapp-enviado')
+  @ApiOperation({ summary: 'Marcar link de WhatsApp como enviado' })
+  @ApiResponse({ status: 200, description: 'WhatsApp marcado como enviado' })
+  @ApiResponse({ status: 404, description: 'Pedido no encontrado' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async marcarWhatsappEnviado(@Param('id') id: string) {
+    const pedido = await this.pedidosService.marcarWhatsappEnviado(id);
+    return { success: true, data: pedido };
+  }
+
   @Patch(':id/marcar-pago')
   @ApiOperation({ summary: 'Marcar pedido como pago completo' })
   @ApiResponse({ status: 200, description: 'Pedido marcado como pago' })

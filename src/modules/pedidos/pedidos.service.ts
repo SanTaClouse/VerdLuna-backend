@@ -133,6 +133,12 @@ Verdulería La Luna 🌙
     return this.createWspOrder(pedido, pedido.cliente);
   }
 
+  async marcarWhatsappEnviado(id: string): Promise<Pedido> {
+    const pedido = await this.findOne(id);
+    pedido.whatsappEnviado = true;
+    return await this.pedidoRepository.save(pedido);
+  }
+
   async updateEstado(id: string, updateEstadoDto: UpdateEstadoPedidoDto): Promise<Pedido> {
     const pedido = await this.findOne(id);
 

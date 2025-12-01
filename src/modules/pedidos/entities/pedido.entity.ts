@@ -61,6 +61,10 @@ export class Pedido {
   @ApiProperty({ description: 'ID del usuario que creó el pedido', required: false })
   creadoPorId: string;
 
+  @Column({ type: 'boolean', default: false })
+  @ApiProperty({ description: 'Indica si el link de WhatsApp fue enviado', default: false })
+  whatsappEnviado: boolean;
+
   @CreateDateColumn()
   @Index()
   @ApiProperty({ description: 'Timestamp de creación' })
