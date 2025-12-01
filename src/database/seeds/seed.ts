@@ -18,9 +18,9 @@ async function bootstrap() {
     // 1. Crear usuario admin
     console.log('📝 Creando usuario admin...');
     const admin1 = await usersService.create({
-      usuario: 'admin1',
-      password: 'admin123',
-      nombre: 'Administrador 1',
+      usuario: 'Admin-pablo',
+      password: 'Admin.Luna123',
+      nombre: 'Pablo',
       email: 'admin@laluna.com',
       rol: 'admin' as any,
     });
@@ -28,9 +28,9 @@ async function bootstrap() {
 
     console.log('📝 Creando usuario admin...');
     const admin2 = await usersService.create({
-      usuario: 'admin2',
-      password: 'admin123',
-      nombre: 'Administrador 2',
+      usuario: 'Admin-martin',
+      password: 'Admin.Luna123',
+      nombre: 'Martin',
       email: 'admin2@laluna.com',
       rol: 'admin' as any,
     });
@@ -38,9 +38,9 @@ async function bootstrap() {
 
     console.log('📝 Creando usuario admin...');
     const admin3 = await usersService.create({
-      usuario: 'admin3',
-      password: 'admin123',
-      nombre: 'Administrador 3',
+      usuario: 'Admin-Tomas',
+      password: 'Admin.Luna123',
+      nombre: 'Tomas',
       email: 'admin3@laluna.com',
       rol: 'admin' as any,
     });
@@ -49,7 +49,7 @@ async function bootstrap() {
     console.log('📝 Creando usuario admin...');
     const admin4 = await usersService.create({
       usuario: 'admin4',
-      password: 'admin123',
+      password: 'Admin.Luna123',
       nombre: 'Administrador 4',
       email: 'admin4@laluna.com',
       rol: 'admin' as any,
