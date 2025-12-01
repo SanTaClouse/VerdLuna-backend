@@ -76,12 +76,13 @@ export class PedidosService {
       : pedido.descripcion;
 
     const message = `Hola ${cliente.nombre}!
-Tu pedido N° ${pedido.id} fue registrado.
+    Este es un mensaje automatico de la web https://laluna123.vercel.app/
+    Queríamos decirte que Tu pedido N° ${pedido.id} fue registrado.
 
-Detalles: ${descripcionCorta}
-Total: $${pedido.precio}
+    Detalles: ${descripcionCorta}
+    Total: $${pedido.precio}
 
-Verdulería La Luna`;
+    Verdulería La Luna`;
 
     // Usar encodeURIComponent en lugar de querystring.escape para mejor compatibilidad móvil
     const encoded = encodeURIComponent(message);
