@@ -1,5 +1,17 @@
 # 🚀 Guía de Deploy en Render
 
+## ✅ Sistema de Migraciones Configurado
+
+Este proyecto utiliza **TypeORM Migrations** para gestionar el esquema de la base de datos en producción. Las migraciones se ejecutan automáticamente durante el build.
+
+**Migraciones incluidas:**
+1. `1600000000000-InitialSchema.ts` - Crea todas las tablas (users, clientes, pedidos)
+2. `1700000000000-SeedAdminUsers.ts` - Inserta 4 usuarios administradores iniciales
+
+Estas migraciones se ejecutarán en orden automáticamente cuando hagas deploy en Render.
+
+---
+
 ## 📋 Configuración Inicial en Render
 
 ### 1. Crear Web Service en Render
@@ -165,7 +177,9 @@ npm run migration:run:prod
 
 - [ ] Hacer commit de todos los cambios
 - [ ] Verificar que `DROP_SCHEMA=false` en `.env.development`
-- [ ] Verificar que la migración `1700000000000-SeedAdminUsers.ts` existe
+- [ ] Verificar que las migraciones existen:
+  - `1600000000000-InitialSchema.ts` (crea las tablas)
+  - `1700000000000-SeedAdminUsers.ts` (crea usuarios admin)
 - [ ] Push a GitHub
 
 ### En Render:
@@ -186,7 +200,9 @@ npm run migration:run:prod
 2. Verifica las migraciones:
    - Ve a Shell en Render
    - Ejecuta: `npm run typeorm:prod -- migration:show -d dist/config/typeorm.js`
-   - Deberías ver `SeedAdminUsers` como ejecutada
+   - Deberías ver ambas migraciones como ejecutadas:
+     - `InitialSchema` (crea las tablas)
+     - `SeedAdminUsers` (crea usuarios admin)
 
 3. Prueba el login:
    - URL: `https://tu-app.onrender.com/api/auth/login`
