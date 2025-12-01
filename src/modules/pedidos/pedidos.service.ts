@@ -7,7 +7,6 @@ import { FiltrosPedidosDto } from './dto/filtros-pedidos.dto';
 import { Pedido } from './entities/pedido.entity';
 import { ClienteService } from '../cliente/cliente.service';
 import { Cliente } from '../cliente/entities/cliente.entity';
-import querystring from 'querystring';
 
 
 @Injectable()
@@ -52,18 +51,42 @@ export class PedidosService {
   }
 
   createWspOrder(pedido: Pedido, cliente: Cliente): string {
-    const message = `
-Hola ${cliente.nombre}!
+    // Limpiar el número de teléfono: remover espacios, guiones, paréntesis
+    let telefono = cliente.telefono.replace(/[\s\-\(\)\+]/g, '');
+
+    // Si no empieza con 549 (Argentina), agregarlo
+    if (!telefono.startsWith('549')) {
+      // Si empieza con 54, agregar el 9
+      if (telefono.startsWith('54')) {
+        telefono = '549' + telefono.substring(2);
+      }
+      // Si empieza con 0, quitar el 0 y agregar 549
+      else if (telefono.startsWith('0')) {
+        telefono = '549' + telefono.substring(1);
+      }
+      // Si no tiene código de país, agregar 549
+      else {
+        telefono = '549' + telefono;
+      }
+    }
+
+    // Limitar la descripción a 200 caracteres para evitar URLs muy largas
+    const descripcionCorta = pedido.descripcion.length > 200
+      ? pedido.descripcion.substring(0, 200) + '...'
+      : pedido.descripcion;
+
+    const message = `Hola ${cliente.nombre}!
 Tu pedido N° ${pedido.id} fue registrado.
-Detalles: ${pedido.descripcion}
+
+Detalles: ${descripcionCorta}
 Total: $${pedido.precio}
 
-Verdulería La Luna 🌙
-  `;
+Verdulería La Luna`;
 
-    const encoded = querystring.escape(message);
+    // Usar encodeURIComponent en lugar de querystring.escape para mejor compatibilidad móvil
+    const encoded = encodeURIComponent(message);
 
-    const link = `https://wa.me/${cliente.telefono}?text=${encoded}`;
+    const link = `https://wa.me/${telefono}?text=${encoded}`;
 
     return link;
   }
