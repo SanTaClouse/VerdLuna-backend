@@ -70,19 +70,30 @@ export class PedidosService {
       }
     }
 
-    // Limitar la descripción a 200 caracteres para evitar URLs muy largas
-    const descripcionCorta = pedido.descripcion.length > 200
-      ? pedido.descripcion.substring(0, 200) + '...'
-      : pedido.descripcion;
+    // Formatear precio con separadores de miles
+    const precioFormateado = new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 2
+    }).format(pedido.precio);
 
-    const message = `Hola ${cliente.nombre}!
-    Este es un mensaje automatico de la web https://laluna123.vercel.app/
-    Queríamos decirte que Tu pedido N° ${pedido.id} fue registrado.
+    const message = `*VERDULERIA LA LUNA*
 
-    Detalles: ${descripcionCorta}
-    Total: $${pedido.precio}
+Hola *${cliente.nombre}*!
 
-    Verdulería La Luna`;
+Tu pedido fue registrado exitosamente.
+
+*PEDIDO N°:* ${pedido.id}
+
+*DETALLE DEL PEDIDO:*
+${pedido.descripcion}
+
+*TOTAL: ${precioFormateado}*
+
+${cliente.direccion ? `*DIRECCION DE ENTREGA:*\n${cliente.direccion}\n\n` : ''}Muchas gracias por tu compra!
+
+_Verduleria La Luna_
+Web: https://laluna123.vercel.app/`;
 
     // Usar encodeURIComponent en lugar de querystring.escape para mejor compatibilidad móvil
     const encoded = encodeURIComponent(message);
