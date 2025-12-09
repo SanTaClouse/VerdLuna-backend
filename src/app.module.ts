@@ -8,6 +8,7 @@ import { ClienteModule } from './modules/cliente/cliente.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { getTypeOrmConfig } from './config/typeorm';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { getTypeOrmConfig } from './config/typeorm';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => getTypeOrmConfig(configService),
     }),
+    HealthModule,
     AuthModule,
     UsersModule,
     PedidosModule,

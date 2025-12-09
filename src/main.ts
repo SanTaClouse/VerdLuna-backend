@@ -39,6 +39,7 @@ async function bootstrap() {
     .addTag('Auth', 'Autenticación y autorización')
     .addTag('Clientes', 'Gestión de clientes')
     .addTag('Pedidos', 'Gestión de pedidos')
+    .addTag('Health', 'Monitoreo y estado de la aplicación')
     .addBearerAuth(
       {
         type: 'http',
