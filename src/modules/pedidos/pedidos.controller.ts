@@ -1,12 +1,13 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { PedidosService } from './pedidos.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { CreatePedidoResponseDto } from './dto/create-pedido-response.dto';
 import { UpdateEstadoPedidoDto } from './dto/update-estado-pedido.dto';
 import { UpdatePrecioAbonadoDto } from './dto/update-precio-abonado.dto';
 import { FiltrosPedidosDto } from './dto/filtros-pedidos.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/strategies/guards/jwt-auth.guard';
+import { ReportesQueryDto } from './dto/reportes-query.dto';
 
 @ApiTags('Pedidos')
 @Controller('pedidos')
@@ -33,12 +34,27 @@ export class PedidosController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener lista de pedidos con filtros opcionales' })
-  @ApiResponse({ status: 200, description: 'Lista de pedidos' })
+  @ApiOperation({ summary: 'Obtener lista de pedidos con filtros y paginación opcionales' })
+  @ApiResponse({ status: 200, description: 'Lista de pedidos paginada' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async findAll(@Query() filtros: FiltrosPedidosDto) {
-    const pedidos = await this.pedidosService.findAll(filtros);
-    return { success: true, data: pedidos };
+    const result = await this.pedidosService.findAll(filtros);
+    return {
+      success: true,
+      data: result.data,
+      total: result.total,
+      page: result.page,
+      totalPages: result.totalPages,
+    };
+  }
+
+  @Get('reportes')
+  @ApiOperation({ summary: 'Obtener reporte completo: estadísticas generales, desglose mensual y top clientes' })
+  @ApiResponse({ status: 200, description: 'Reporte completo generado' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async getReportes(@Query() query: ReportesQueryDto) {
+    const data = await this.pedidosService.getReportes(query.meses ?? 6);
+    return { success: true, data };
   }
 
   @Get('estadisticas')
