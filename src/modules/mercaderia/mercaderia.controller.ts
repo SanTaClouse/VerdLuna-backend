@@ -12,8 +12,10 @@ import {
 import { MercaderiaService } from './mercaderia.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { AjustarStockDto } from './dto/ajustar-stock.dto';
+import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/strategies/guards/jwt-auth.guard';
 
+@ApiTags('Mercadería')
 @Controller('mercaderia')
 export class MercaderiaController {
   constructor(private readonly mercaderiaService: MercaderiaService) {}
