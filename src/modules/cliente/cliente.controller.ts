@@ -3,14 +3,14 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagg
 import { ClienteService } from './cliente.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/strategies/guards/jwt-auth.guard';
 
 @ApiTags('Clientes')
 @Controller('clientes')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 export class ClienteController {
-  constructor(private readonly clienteService: ClienteService) {}
+  constructor(private readonly clienteService: ClienteService) { }
 
   @Post()
   @ApiOperation({ summary: 'Crear nuevo cliente' })
