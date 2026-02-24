@@ -150,6 +150,13 @@ Web: https://laluna123.vercel.app/`;
     };
   }
 
+  async findByCliente(clienteId: string): Promise<Pedido[]> {
+    return this.buildBaseQuery({ clienteId } as FiltrosPedidosDto)
+      .orderBy('pedido.fecha', 'DESC')
+      .addOrderBy('pedido.createdAt', 'DESC')
+      .getMany();
+  }
+
   async findOne(id: string): Promise<Pedido> {
     const pedido = await this.pedidoRepository.findOne({
       where: { id },

@@ -66,6 +66,15 @@ export class PedidosController {
     return { success: true, data: estadisticas };
   }
 
+  @Get('cliente/:clienteId')
+  @ApiOperation({ summary: 'Obtener todos los pedidos de un cliente específico' })
+  @ApiResponse({ status: 200, description: 'Lista completa de pedidos del cliente' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async findByCliente(@Param('clienteId') clienteId: string) {
+    const pedidos = await this.pedidosService.findByCliente(clienteId);
+    return { success: true, data: pedidos };
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener pedido por ID' })
   @ApiResponse({ status: 200, description: 'Pedido encontrado' })
