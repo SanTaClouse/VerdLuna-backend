@@ -214,7 +214,21 @@ export class FacturacionService {
     }
 
     const payment = new Payment(this.mpClient);
-    const pago = await payment.get({ id: String(paymentId) });
+    let pago;
+    try {
+      pago = await payment.get({ id: String(paymentId) });
+    } catch (error: any) {
+      const status = error?.status ?? error?.statusCode;
+      this.logger.warn(
+        `Webhook: no se pudo obtener el pago ${paymentId} (status ${status}): ${error?.message ?? error}`,
+      );
+      // El simulador de MP envía un pago inexistente (id 123456) → 404. No es un error real.
+      if (status === 404 || error?.error === 'not_found') {
+        return { procesado: false, motivo: 'pago_no_encontrado' };
+      }
+      // Otros errores (transitorios) → propagamos para que Mercado Pago reintente.
+      throw error;
+    }
 
     if (pago.status !== 'approved' || !pago.external_reference) {
       return { procesado: false, estadoPago: pago.status };
