@@ -310,17 +310,24 @@ export class FacturacionService {
   }
 
   async seed(): Promise<{ insertados: number; mensaje: string }> {
-    const count = await this.facturaRepo.count();
-    if (count > 0) {
-      return {
-        insertados: 0,
-        mensaje: `Ya existen ${count} facturas, no se insertaron duplicados`,
-      };
+    // Idempotente por período: inserta solo los meses que falten, sin tocar los
+    // que ya existan (p. ej. la factura del mes actual generada automáticamente).
+    const existentes = await this.facturaRepo.find({ select: { periodo: true } });
+    const periodosExistentes = new Set(existentes.map((f) => f.periodo));
+
+    const aInsertar = FACTURAS_SEED.filter((f) => !periodosExistentes.has(f.periodo));
+
+    if (aInsertar.length === 0) {
+      return { insertados: 0, mensaje: 'El historial ya estaba completo; no se insertó nada.' };
     }
 
-    await this.facturaRepo.save(this.facturaRepo.create(FACTURAS_SEED as any[]));
+    await this.facturaRepo.save(this.facturaRepo.create(aInsertar as any[]));
 
-    const total = await this.facturaRepo.count();
-    return { insertados: total, mensaje: `${total} facturas insertadas correctamente` };
+    return {
+      insertados: aInsertar.length,
+      mensaje: `${aInsertar.length} factura(s) insertada(s): ${aInsertar
+        .map((f) => f.periodo)
+        .join(', ')}`,
+    };
   }
 }
