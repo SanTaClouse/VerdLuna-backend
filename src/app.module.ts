@@ -8,6 +8,7 @@ import { ClienteModule } from './modules/cliente/cliente.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { MercaderiaModule } from './modules/mercaderia/mercaderia.module';
+import { FacturacionModule } from './modules/facturacion/facturacion.module';
 import { getTypeOrmConfig } from './config/typeorm';
 import { HealthModule } from './health/health.module';
 
@@ -28,6 +29,7 @@ import { HealthModule } from './health/health.module';
     PedidosModule,
     ClienteModule,
     MercaderiaModule,
+    FacturacionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
