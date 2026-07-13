@@ -145,32 +145,14 @@ export class FacturacionService {
   // ---------------------------------------------------------------------------
   // Mercado Pago: crear checkout (Checkout Pro)
   // ---------------------------------------------------------------------------
-  async crearCheckout(facturaId: string) {
-    const factura = await this.facturaRepo.findOne({ where: { id: facturaId } });
-    if (!factura) throw new NotFoundException('Factura no encontrada');
-    if (factura.estado === EstadoFactura.PAGADO) {
-      throw new BadRequestException('La factura ya está pagada');
-    }
-    if (!this.mpClient) {
-      throw new ServiceUnavailableException(
-        'Mercado Pago no está configurado (falta MP_ACCESS_TOKEN)',
-      );
-    }
-
+  /** Arma el body de la preferencia de Checkout Pro (items + retorno + webhook). */
+  private buildPreferenceBody(items: any[], externalReference: string) {
     const frontUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173';
     const backUrl = this.config.get<string>('BACKEND_PUBLIC_URL');
 
     const body: any = {
-      items: [
-        {
-          id: factura.id,
-          title: `Hosting BackOffice Luna - ${factura.periodo}`,
-          quantity: 1,
-          unit_price: Number(factura.monto),
-          currency_id: 'ARS',
-        },
-      ],
-      external_reference: factura.id,
+      items,
+      external_reference: externalReference,
       back_urls: {
         success: `${frontUrl}/administracion?pago=success`,
         failure: `${frontUrl}/administracion?pago=failure`,
@@ -190,6 +172,34 @@ export class FacturacionService {
       body.notification_url = `${backUrl}/api/facturacion/webhook`;
     }
 
+    return body;
+  }
+
+  private itemDeFactura(f: Factura) {
+    return {
+      id: f.id,
+      title: `Hosting BackOffice Luna - ${f.periodo}`,
+      quantity: 1,
+      unit_price: Number(f.monto),
+      currency_id: 'ARS',
+    };
+  }
+
+  /** Checkout de una sola factura. */
+  async crearCheckout(facturaId: string) {
+    if (!this.mpClient) {
+      throw new ServiceUnavailableException(
+        'Mercado Pago no está configurado (falta MP_ACCESS_TOKEN)',
+      );
+    }
+
+    const factura = await this.facturaRepo.findOne({ where: { id: facturaId } });
+    if (!factura) throw new NotFoundException('Factura no encontrada');
+    if (factura.estado === EstadoFactura.PAGADO) {
+      throw new BadRequestException('La factura ya está pagada');
+    }
+
+    const body = this.buildPreferenceBody([this.itemDeFactura(factura)], factura.id);
     const preference = new Preference(this.mpClient);
     const result = await preference.create({ body });
 
@@ -197,6 +207,51 @@ export class FacturacionService {
     await this.facturaRepo.save(factura);
 
     return { initPoint: result.init_point, preferenceId: result.id };
+  }
+
+  /**
+   * Checkout de TODA la deuda pendiente (meses vencidos + mes actual) en un solo pago.
+   * Cada mes va como un ítem de la preferencia; el external_reference lleva todos los ids.
+   */
+  async crearCheckoutDeuda() {
+    if (!this.mpClient) {
+      throw new ServiceUnavailableException(
+        'Mercado Pago no está configurado (falta MP_ACCESS_TOKEN)',
+      );
+    }
+
+    const ahora = this.getAhoraAR();
+    const facturaActual = await this.ensureFacturaPeriodoActual();
+
+    const vencidas = await this.facturaRepo.find({
+      where: { estado: EstadoFactura.PENDIENTE, periodo: LessThan(ahora.periodo) },
+      order: { periodo: 'ASC' },
+    });
+
+    const pendientes = [...vencidas];
+    if (facturaActual.estado === EstadoFactura.PENDIENTE) pendientes.push(facturaActual);
+
+    if (pendientes.length === 0) {
+      throw new BadRequestException('No hay deuda pendiente');
+    }
+
+    const items = pendientes.map((f) => this.itemDeFactura(f));
+    const externalReference = pendientes.map((f) => f.id).join(',');
+
+    const body = this.buildPreferenceBody(items, externalReference);
+    const preference = new Preference(this.mpClient);
+    const result = await preference.create({ body });
+
+    // Guardamos la preferencia en todas las facturas incluidas.
+    for (const f of pendientes) f.mpPreferenceId = result.id ?? null;
+    await this.facturaRepo.save(pendientes);
+
+    return {
+      initPoint: result.init_point,
+      preferenceId: result.id,
+      facturas: pendientes.length,
+      total: pendientes.reduce((s, f) => s + Number(f.monto), 0),
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -240,25 +295,33 @@ export class FacturacionService {
       return { procesado: false, estadoPago: pago.status };
     }
 
-    const factura = await this.facturaRepo.findOne({
-      where: { id: String(pago.external_reference) },
-    });
-    if (!factura) {
-      this.logger.warn(`Webhook: factura ${pago.external_reference} no encontrada.`);
-      return { procesado: false };
+    // El external_reference puede traer 1 id (pago simple) o varios separados por
+    // coma (pago de toda la deuda). Marcamos todas las facturas incluidas.
+    const ids = String(pago.external_reference)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    let procesadas = 0;
+    for (const id of ids) {
+      const factura = await this.facturaRepo.findOne({ where: { id } });
+      if (!factura) {
+        this.logger.warn(`Webhook: factura ${id} no encontrada.`);
+        continue;
+      }
+      // Idempotente: si ya está pagada, no hacemos nada.
+      if (factura.estado !== EstadoFactura.PAGADO) {
+        factura.estado = EstadoFactura.PAGADO;
+        factura.fechaPago = new Date();
+        factura.metodoPago = MetodoPago.MERCADOPAGO;
+        factura.mpPaymentId = String(pago.id);
+        await this.facturaRepo.save(factura);
+        procesadas++;
+        this.logger.log(`Factura ${factura.periodo} marcada como PAGADA (pago ${pago.id}).`);
+      }
     }
 
-    // Idempotente: si ya está pagada, no hacemos nada.
-    if (factura.estado !== EstadoFactura.PAGADO) {
-      factura.estado = EstadoFactura.PAGADO;
-      factura.fechaPago = new Date();
-      factura.metodoPago = MetodoPago.MERCADOPAGO;
-      factura.mpPaymentId = String(pago.id);
-      await this.facturaRepo.save(factura);
-      this.logger.log(`Factura ${factura.periodo} marcada como PAGADA (pago ${pago.id}).`);
-    }
-
-    return { procesado: true };
+    return { procesado: procesadas > 0, facturas: ids.length, marcadas: procesadas };
   }
 
   /**

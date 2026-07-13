@@ -44,6 +44,15 @@ export class FacturacionController {
     return { data };
   }
 
+  @Post('checkout-deuda')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Crear un único pago por toda la deuda pendiente (meses vencidos + actual)' })
+  async crearCheckoutDeuda() {
+    const data = await this.facturacionService.crearCheckoutDeuda();
+    return { data };
+  }
+
   @Post(':id/checkout')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
