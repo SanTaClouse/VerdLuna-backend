@@ -176,8 +176,14 @@ export class FacturacionService {
         failure: `${frontUrl}/administracion?pago=failure`,
         pending: `${frontUrl}/administracion?pago=pending`,
       },
-      auto_return: 'approved',
     };
+
+    // auto_return exige que back_urls.success sea una URL pública (https, no localhost).
+    // En local lo omitimos para evitar el error "invalid_auto_return".
+    const successEsPublica = /^https:\/\//.test(frontUrl) && !frontUrl.includes('localhost');
+    if (successEsPublica) {
+      body.auto_return = 'approved';
+    }
 
     // La notification_url requiere que el backend sea accesible públicamente.
     if (backUrl) {
